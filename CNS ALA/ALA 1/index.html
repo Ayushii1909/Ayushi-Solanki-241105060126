@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Secure Messaging | AES + RSA</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Segoe UI",Arial,sans-serif;
+}
+
+body{
+    min-height:100vh;
+    background:linear-gradient(135deg,#eef2ff,#f8fafc,#e0f2fe);
+    color:#172033;
+    padding:30px 15px;
+}
+
+.container{
+    max-width:1150px;
+    margin:auto;
+}
+
+/* HEADER */
+.header{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.logo{
+    width:70px;
+    height:70px;
+    margin:auto;
+    background:white;
+    border:2px solid #e0e7ff;
+    border-radius:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:34px;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+.header h1{
+    margin-top:15px;
+    font-size:34px;
+    color:#111827;
+}
+
+.header p{
+    margin-top:7px;
+    color:#64748b;
+}
+
+.badges{
+    margin-top:15px;
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.badge{
+    padding:7px 14px;
+    background:white;
+    border:1px solid #e2e8f0;
+    border-radius:30px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+/* MAIN BOX */
+.main-box{
+    background:rgba(255,255,255,.95);
+    border:1px solid #e2e8f0;
+    border-radius:22px;
+    padding:25px;
+    box-shadow:0 20px 50px rgba(15,23,42,.10);
+}
+
+/* SENDER / RECIPIENT */
+.top-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+
+.card{
+    border:1px solid #dbe3ef;
+    border-radius:17px;
+    background:#fff;
+    padding:22px;
+    box-shadow:0 7px 20px rgba(15,23,42,.05);
+}
+
+.card-title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:18px;
+}
+
+.card-title .icon{
+    width:42px;
+    height:42px;
+    border-radius:12px;
+    background:#eef2ff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:21px;
+}
+
+.card-title h2{
+    font-size:20px;
+}
+
+/* INPUT */
+label{
+    display:block;
+    font-size:14px;
+    font-weight:700;
+    color:#475569;
+    margin-bottom:8px;
+}
+
+textarea{
+    width:100%;
+    min-height:130px;
+    resize:vertical;
+    border:1px solid #dbe3ef;
+    border-radius:12px;
+    padding:13px;
+    outline:none;
+    font-size:14px;
+    background:#f8fafc;
+}
+
+textarea:focus{
+    border-color:#6366f1;
+    background:white;
+    box-shadow:0 0 0 3px rgba(99,102,241,.1);
+}
+
+/* BUTTONS */
+.button-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:15px;
+}
+
+button{
+    border:none;
+    padding:11px 17px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+    transition:.2s;
+}
+
+button:hover{
+    transform:translateY(-2px);
+}
+
+.encrypt-btn{
+    background:#4f46e5;
+    color:white;
+}
+
+.encrypt-btn:hover{
+    background:#4338ca;
+}
+
+.decrypt-btn{
+    background:#059669;
+    color:white;
+}
+
+.decrypt-btn:hover{
+    background:#047857;
+}
+
+.demo-btn{
+    background:#e2e8f0;
+    color:#334155;
+}
+
+.reset-btn{
+    background:#fee2e2;
+    color:#b91c1c;
+}
+
+/* STATUS */
+.status-box{
+    margin-top:15px;
+    padding:14px;
+    border-radius:11px;
+    background:#f1f5f9;
+    color:#475569;
+    text-align:center;
+    font-size:13px;
+    font-weight:700;
+}
+
+.status-success{
+    background:#ecfdf5;
+    color:#047857;
+}
+
+.status-error{
+    background:#fef2f2;
+    color:#b91c1c;
+}
+
+/* SECTION */
+.section{
+    margin-top:22px;
+    border:1px solid #dbe3ef;
+    border-radius:17px;
+    overflow:hidden;
+    background:white;
+}
+
+.section-header{
+    padding:15px 20px;
+    background:#f8fafc;
+    border-bottom:1px solid #e2e8f0;
+    font-size:18px;
+    font-weight:800;
+}
+
+.section-body{
+    padding:20px;
+}
+
+/* OUTPUT BOX */
+.output-item{
+    margin-bottom:17px;
+}
+
+.output-item:last-child{
+    margin-bottom:0;
+}
+
+.output-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:7px;
+}
+
+.output-title span{
+    font-size:13px;
+    font-weight:800;
+    color:#475569;
+}
+
+.copy-btn{
+    padding:5px 9px;
+    background:#f1f5f9;
+    color:#475569;
+    font-size:10px;
+}
+
+.output{
+    background:#0f172a;
+    color:#cbd5e1;
+    border-radius:10px;
+    padding:13px;
+    min-height:50px;
+    font-family:Consolas,monospace;
+    font-size:12px;
+    word-break:break-all;
+    white-space:pre-wrap;
+}
+
+.final-message{
+    background:#ecfdf5;
+    border:1px solid #a7f3d0;
+    color:#047857;
+    font-family:"Segoe UI",Arial,sans-serif;
+    font-size:15px;
+    font-weight:700;
+}
+
+/* FLOW */
+.flow{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:9px;
+    flex-wrap:wrap;
+}
+
+.flow-box{
+    border:1px solid #dbe3ef;
+    background:#f8fafc;
+    padding:13px 17px;
+    border-radius:11px;
+    text-align:center;
+    font-size:12px;
+    font-weight:800;
+}
+
+.arrow{
+    font-size:20px;
+    color:#6366f1;
+    font-weight:bold;
+}
+
+/* SECURITY */
+.security-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+}
+
+.security-item{
+    padding:14px;
+    border:1px solid #e2e8f0;
+    border-radius:11px;
+    background:#f8fafc;
+}
+
+.security-item small{
+    display:block;
+    color:#64748b;
+    font-size:10px;
+    font-weight:bold;
+    margin-bottom:5px;
+}
+
+.security-item strong{
+    font-size:14px;
+}
+
+/* FOOTER */
+.footer{
+    text-align:center;
+    margin-top:20px;
+    color:#64748b;
+    font-size:12px;
+    line-height:1.7;
+}
+
+/* MOBILE */
+@media(max-width:800px){
+
+    .top-grid{
+        grid-template-columns:1fr;
+    }
+
+    .security-grid{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .header h1{
+        font-size:27px;
+    }
+}
+
+@media(max-width:500px){
+
+    .main-box{
+        padding:15px;
+    }
+
+    .security-grid{
+        grid-template-columns:1fr;
+    }
+
+    .flow{
+        flex-direction:column;
+    }
+
+    .arrow{
+        transform:rotate(90deg);
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+
+        <div class="logo">🔐</div>
+
+        <h1>Secure Messaging</h1>
+
+        <p>
+            AES + RSA Hybrid Encryption Web Application
+        </p>
+
+        <div class="badges">
+            <div class="badge">🔵 AES-256-GCM</div>
+            <div class="badge">🟣 RSA-OAEP</div>
+            <div class="badge">🛡️ Secure Web Crypto API</div>
+        </div>
+
+    </div>
+
+
+    <!-- MAIN BOX -->
+    <div class="main-box">
+
+        <!-- SENDER + RECIPIENT -->
+        <div class="top-grid">
+
+            <!-- SENDER -->
+            <div class="card">
+
+                <div class="card-title">
+                    <div class="icon">📤</div>
+                    <h2>Sender</h2>
+                </div>
+
+                <label for="message">
+                    Enter Your Message
+                </label>
+
+                <textarea
+                    id="message"
+                    placeholder="Enter a confidential message..."
+                ></textarea>
+
+                <div class="button-row">
+
+                    <button
+                        class="demo-btn"
+                        onclick="demoMessage()">
+                        ✨ Demo Message
+                    </button>
+
+                    <button
+                        class="encrypt-btn"
+                        onclick="encryptMessage()">
+                        🔒 Encrypt Message
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- RECIPIENT -->
+            <div class="card">
+
+                <div class="card-title">
+                    <div class="icon">📥</div>
+                    <h2>Recipient</h2>
+                </div>
+
+                <p style="
+                    color:#64748b;
+                    font-size:14px;
+                    line-height:1.7;
+                ">
+                    The recipient first decrypts the AES key using
+                    the RSA private key and then uses the recovered
+                    AES key to decrypt the message.
+                </p>
+
+                <div class="button-row">
+
+                    <button
+                        class="decrypt-btn"
+                        onclick="decryptMessage()">
+                        🔓 Decrypt Message
+                    </button>
+
+                    <button
+                        class="reset-btn"
+                        onclick="resetApp()">
+                        ↻ Reset
+                    </button>
+
+                </div>
+
+                <div
+                    class="status-box"
+                    id="status">
+                    Waiting for encryption...
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ENCRYPTION -->
+        <div class="section">
+
+            <div class="section-header">
+                🔐 Encryption Process
+            </div>
+
+            <div class="section-body">
+
+                <!-- AES KEY -->
+                <div class="output-item">
+
+                    <div class="output-title">
+
+                        <span>
+                            🔑 Generated AES-256 Key
+                        </span>
+
+                        <button
+                            class="copy-btn"
+                            onclick="copyText('aesKeyOutput')">
+                            Copy
+                        </button>
+
+                    </div>
+
+                    <div
+                        class="output"
+                        id="aesKeyOutput">
+                        AES key will appear here...
+                    </div>
+
+                </div>
+
+
+                <!-- ENCRYPTED MESSAGE -->
+                <div class="output-item">
+
+                    <div class="output-title">
+
+                        <span>
+                            🔒 AES Encrypted Message
+                        </span>
+
+                        <button
+                            class="copy-btn"
+                            onclick="copyText('encryptedMessageOutput')">
+                            Copy
+                        </button>
+
+                    </div>
+
+                    <div
+                        class="output"
+                        id="encryptedMessageOutput">
+                        Encrypted message will appear here...
+                    </div>
+
+                </div>
+
+
+                <!-- RSA KEY -->
+                <div class="output-item">
+
+                    <div class="output-title">
+
+                        <span>
+                            🛡️ RSA Encrypted AES Key
+                        </span>
+
+                        <button
+                            class="copy-btn"
+                            onclick="copyText('rsaEncryptedKeyOutput')">
+                            Copy
+                        </button>
+
+                    </div>
+
+                    <div
+                        class="output"
+                        id="rsaEncryptedKeyOutput">
+                        RSA encrypted AES key will appear here...
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- DECRYPTION -->
+        <div class="section">
+
+            <div class="section-header">
+                🔓 Decryption Process
+            </div>
+
+            <div class="section-body">
+
+                <!-- DECRYPTED AES KEY -->
+                <div class="output-item">
+
+                    <div class="output-title">
+
+                        <span>
+                            🔑 RSA Decrypted AES Key
+                        </span>
+
+                    </div>
+
+                    <div
+                        class="output"
+                        id="decryptedAESKeyOutput">
+                        Decrypted AES key will appear here...
+                    </div>
+
+                </div>
+
+
+                <!-- FINAL MESSAGE -->
+                <div class="output-item">
+
+                    <div class="output-title">
+
+                        <span>
+                            💬 Final Decrypted Message
+                        </span>
+
+                    </div>
+
+                    <div
+                        class="output final-message"
+                        id="decryptedMessageOutput">
+                        Decrypted message will appear here...
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- FLOW -->
+        <div class="section">
+
+            <div class="section-header">
+                🔄 Hybrid Encryption Flow
+            </div>
+
+            <div class="section-body">
+
+                <div class="flow">
+
+                    <div class="flow-box">
+                        📝<br>
+                        Original Message
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        🔵<br>
+                        AES Encryption
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        🔒<br>
+                        Encrypted Message
+                    </div>
+
+                    <div class="arrow">+</div>
+
+                    <div class="flow-box">
+                        🔑<br>
+                        AES Key
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        🟣<br>
+                        RSA Encryption
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        🔐<br>
+                        Secure AES Key
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- SECURITY -->
+        <div class="section">
+
+            <div class="section-header">
+                ⚙️ Security Configuration
+            </div>
+
+            <div class="section-body">
+
+                <div class="security-grid">
+
+                    <div class="security-item">
+                        <small>SYMMETRIC</small>
+                        <strong>AES-256-GCM</strong>
+                    </div>
+
+                    <div class="security-item">
+                        <small>ASYMMETRIC</small>
+                        <strong>RSA-OAEP</strong>
+                    </div>
+
+                    <div class="security-item">
+                        <small>RSA KEY SIZE</small>
+                        <strong>2048-bit</strong>
+                    </div>
+
+                    <div class="security-item">
+                        <small>HASH</small>
+                        <strong>SHA-256</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="footer">
+
+        🔐 Secure Messaging Web Application
+        <br>
+
+        GMIU — Cryptography & Network Security Activity
+        <br>
+
+        AES Symmetric Encryption + RSA Asymmetric Encryption
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* ==========================================================
+   SECURE MESSAGING APPLICATION
+   AES-256-GCM + RSA-OAEP 2048
+   ========================================================== */
+
+
+let rsaKeyPair = null;
+let aesKey = null;
+let encryptedMessageData = null;
+let encryptedAESKey = null;
+
+
+/* ----------------------------------------------------------
+   ARRAY BUFFER → BASE64
+---------------------------------------------------------- */
+
+function arrayBufferToBase64(buffer){
+
+    const bytes = new Uint8Array(buffer);
+
+    let binary = "";
+
+    for(let i = 0; i < bytes.length; i++){
+
+        binary += String.fromCharCode(bytes[i]);
+
+    }
+
+    return btoa(binary);
+}
+
+
+/* ----------------------------------------------------------
+   BASE64 → UINT8ARRAY
+---------------------------------------------------------- */
+
+function base64ToArrayBuffer(base64){
+
+    const binary = atob(base64);
+
+    const bytes = new Uint8Array(binary.length);
+
+    for(let i = 0; i < binary.length; i++){
+
+        bytes[i] = binary.charCodeAt(i);
+
+    }
+
+    return bytes;
+}
+
+
+/* ----------------------------------------------------------
+   GENERATE RSA KEY PAIR
+---------------------------------------------------------- */
+
+async function generateRSAKeys(){
+
+    rsaKeyPair =
+        await crypto.subtle.generateKey(
+
+            {
+                name:"RSA-OAEP",
+
+                modulusLength:2048,
+
+                publicExponent:
+                    new Uint8Array([1,0,1]),
+
+                hash:"SHA-256"
+            },
+
+            true,
+
+            ["encrypt","decrypt"]
+        );
+}
+
+
+/* ----------------------------------------------------------
+   GENERATE AES KEY
+---------------------------------------------------------- */
+
+async function generateAESKey(){
+
+    aesKey =
+        await crypto.subtle.generateKey(
+
+            {
+                name:"AES-GCM",
+                length:256
+            },
+
+            true,
+
+            ["encrypt","decrypt"]
+        );
+}
+
+
+/* ----------------------------------------------------------
+   ENCRYPT MESSAGE
+---------------------------------------------------------- */
+
+async function encryptMessage(){
+
+    try{
+
+        const message =
+            document
+            .getElementById("message")
+            .value
+            .trim();
+
+
+        if(!message){
+
+            setStatus(
+                "⚠️ Please enter a message first.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        setStatus(
+            "🔄 Generating secure keys...",
+            "normal"
+        );
+
+
+        /* Generate RSA */
+
+        await generateRSAKeys();
+
+
+        /* Generate AES */
+
+        await generateAESKey();
+
+
+        /* Generate random IV */
+
+        const iv =
+            crypto.getRandomValues(
+                new Uint8Array(12)
+            );
+
+
+        /* Convert message */
+
+        const encoder =
+            new TextEncoder();
+
+        const messageBytes =
+            encoder.encode(message);
+
+
+        /* AES Encryption */
+
+        const encryptedMessage =
+            await crypto.subtle.encrypt(
+
+                {
+                    name:"AES-GCM",
+                    iv:iv
+                },
+
+                aesKey,
+
+                messageBytes
+            );
+
+
+        /* Export AES key */
+
+        const rawAESKey =
+            await crypto.subtle.exportKey(
+                "raw",
+                aesKey
+            );
+
+
+        /* RSA encrypt AES key */
+
+        encryptedAESKey =
+            await crypto.subtle.encrypt(
+
+                {
+                    name:"RSA-OAEP"
+                },
+
+                rsaKeyPair.publicKey,
+
+                rawAESKey
+            );
+
+
+        /* Store encrypted message */
+
+        encryptedMessageData = {
+
+            iv:
+                arrayBufferToBase64(iv),
+
+            ciphertext:
+                arrayBufferToBase64(
+                    encryptedMessage
+                )
+        };
+
+
+        /* Display AES key */
+
+        document
+        .getElementById("aesKeyOutput")
+        .textContent =
+            arrayBufferToBase64(
+                rawAESKey
+            );
+
+
+        /* Display encrypted message */
+
+        document
+        .getElementById(
+            "encryptedMessageOutput"
+        )
+        .textContent =
+            JSON.stringify(
+                encryptedMessageData,
+                null,
+                2
+            );
+
+
+        /* Display RSA encrypted key */
+
+        document
+        .getElementById(
+            "rsaEncryptedKeyOutput"
+        )
+        .textContent =
+            arrayBufferToBase64(
+                encryptedAESKey
+            );
+
+
+        /* Reset decrypt outputs */
+
+        document
+        .getElementById(
+            "decryptedAESKeyOutput"
+        )
+        .textContent =
+            "Waiting for RSA decryption...";
+
+
+        document
+        .getElementById(
+            "decryptedMessageOutput"
+        )
+        .textContent =
+            "Waiting for AES decryption...";
+
+
+        setStatus(
+            "✅ Encryption successful! AES encrypted the message and RSA secured the AES key.",
+            "success"
+        );
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        setStatus(
+            "❌ Encryption failed: " +
+            error.message,
+            "error"
+        );
+    }
+}
+
+
+/* ----------------------------------------------------------
+   DECRYPT MESSAGE
+---------------------------------------------------------- */
+
+async function decryptMessage(){
+
+    try{
+
+        if(
+            !rsaKeyPair ||
+            !encryptedAESKey ||
+            !encryptedMessageData
+        ){
+
+            setStatus(
+                "⚠️ Please encrypt a message first.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        setStatus(
+            "🔄 RSA is decrypting the AES key...",
+            "normal"
+        );
+
+
+        /* RSA decrypt AES key */
+
+        const decryptedAESKeyRaw =
+            await crypto.subtle.decrypt(
+
+                {
+                    name:"RSA-OAEP"
+                },
+
+                rsaKeyPair.privateKey,
+
+                encryptedAESKey
+            );
+
+
+        /* Display recovered AES key */
+
+        document
+        .getElementById(
+            "decryptedAESKeyOutput"
+        )
+        .textContent =
+            arrayBufferToBase64(
+                decryptedAESKeyRaw
+            );
+
+
+        /* Import recovered AES key */
+
+        const recoveredAESKey =
+            await crypto.subtle.importKey(
+
+                "raw",
+
+                decryptedAESKeyRaw,
+
+                {
+                    name:"AES-GCM"
+                },
+
+                false,
+
+                ["decrypt"]
+            );
+
+
+        /* Recover IV */
+
+        const iv =
+            base64ToArrayBuffer(
+                encryptedMessageData.iv
+            );
+
+
+        /* Recover ciphertext */
+
+        const ciphertext =
+            base64ToArrayBuffer(
+                encryptedMessageData.ciphertext
+            );
+
+
+        setStatus(
+            "🔄 AES is decrypting the message...",
+            "normal"
+        );
+
+
+        /* AES decrypt */
+
+        const decryptedData =
+            await crypto.subtle.decrypt(
+
+                {
+                    name:"AES-GCM",
+                    iv:iv
+                },
+
+                recoveredAESKey,
+
+                ciphertext
+            );
+
+
+        /* Convert to text */
+
+        const decoder =
+            new TextDecoder();
+
+        const originalMessage =
+            decoder.decode(
+                decryptedData
+            );
+
+
+        /* Display final message */
+
+        document
+        .getElementById(
+            "decryptedMessageOutput"
+        )
+        .textContent =
+            originalMessage;
+
+
+        setStatus(
+            "✅ SUCCESS! RSA recovered the AES key and AES decrypted the original message.",
+            "success"
+        );
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        setStatus(
+            "❌ Decryption failed: " +
+            error.message,
+            "error"
+        );
+    }
+}
+
+
+/* ----------------------------------------------------------
+   STATUS
+---------------------------------------------------------- */
+
+function setStatus(message,type){
+
+    const status =
+        document.getElementById("status");
+
+    status.textContent = message;
+
+    status.className =
+        "status-box";
+
+
+    if(type === "success"){
+
+        status.classList.add(
+            "status-success"
+        );
+
+    }
+
+    else if(type === "error"){
+
+        status.classList.add(
+            "status-error"
+        );
+    }
+}
+
+
+/* ----------------------------------------------------------
+   DEMO MESSAGE
+---------------------------------------------------------- */
+
+function demoMessage(){
+
+    document
+    .getElementById("message")
+    .value =
+        "Hello! This is a confidential message secured using AES and RSA encryption.";
+
+}
+
+
+/* ----------------------------------------------------------
+   COPY
+---------------------------------------------------------- */
+
+async function copyText(elementId){
+
+    const text =
+        document
+        .getElementById(elementId)
+        .textContent;
+
+    try{
+
+        await navigator.clipboard.writeText(text);
+
+        alert("✅ Copied to clipboard!");
+
+    }
+
+    catch(error){
+
+        alert("Unable to copy.");
+
+    }
+}
+
+
+/* ----------------------------------------------------------
+   RESET
+---------------------------------------------------------- */
+
+function resetApp(){
+
+    rsaKeyPair = null;
+    aesKey = null;
+    encryptedMessageData = null;
+    encryptedAESKey = null;
+
+
+    document
+    .getElementById("message")
+    .value = "";
+
+
+    document
+    .getElementById("aesKeyOutput")
+    .textContent =
+        "AES key will appear here...";
+
+
+    document
+    .getElementById("encryptedMessageOutput")
+    .textContent =
+        "Encrypted message will appear here...";
+
+
+    document
+    .getElementById("rsaEncryptedKeyOutput")
+    .textContent =
+        "RSA encrypted AES key will appear here...";
+
+
+    document
+    .getElementById("decryptedAESKeyOutput")
+    .textContent =
+        "Decrypted AES key will appear here...";
+
+
+    document
+    .getElementById("decryptedMessageOutput")
+    .textContent =
+        "Decrypted message will appear here...";
+
+
+    setStatus(
+        "Waiting for encryption...",
+        "normal"
+    );
+}
+
+</script>
+
+</body>
+</html>
